@@ -45,7 +45,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(fastifyEnv, {
     confKey: 'env',
     schema: envJsonSchema,
-    dotenv: true,
+    dotenv: { quiet: true },
   });
 
   await app.register(helmet);
