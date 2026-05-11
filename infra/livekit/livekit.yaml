@@ -1,0 +1,24 @@
+# LiveKit dev configuration.
+#
+# ============================================================================
+# DEV-ONLY — DO NOT USE THESE CREDENTIALS IN PRODUCTION.
+# Phase 6 (deployment) provisions a real API key/secret pair from environment.
+# ============================================================================
+
+port: 7880
+
+rtc:
+  tcp_port: 7881
+  port_range_start: 50000
+  port_range_end: 50100
+  # The LiveKit server runs on the same host as the client during local dev,
+  # so we don't need to discover an external IP. Phase 3 (voice/video) and
+  # Phase 6 (deploy) will revisit this.
+  use_external_ip: false
+
+# Dev-only API key / secret pair. Format is "key: secret".
+# The secret must be at least 32 characters per LiveKit's security policy.
+keys:
+  devkey: disbord_dev_livekit_secret_32chars_minimum_xxxxxxxxxxx
+
+log_level: info

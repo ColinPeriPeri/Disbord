@@ -1,0 +1,57 @@
+# =============================================================================
+# Disbord — Caddy reverse-proxy configuration (placeholder).
+#
+# This file is NOT active in Phase 0. The corresponding service in
+# infra/docker-compose.yml is commented out. Phase 6 (Polish & deployment)
+# will enable it.
+#
+# The structure below documents the intended deployment topology so the
+# eventual cut-over is a config flip rather than a redesign.
+# =============================================================================
+
+# ---- Production form (Phase 6) ----------------------------------------------
+#
+# Replace `disbord.example.com` with the actual public hostname (routed via
+# Cloudflare Tunnel). Caddy will auto-provision TLS certificates from
+# Let's Encrypt when DNS resolves.
+#
+# disbord.example.com {
+#     # Logs to stdout for `docker logs caddy` access.
+#     log {
+#         output stdout
+#         format console
+#     }
+#
+#     # ---- API ---------------------------------------------------------------
+#     handle /api/* {
+#         reverse_proxy api:3001
+#     }
+#
+#     # ---- LiveKit signaling + WebSocket -------------------------------------
+#     # LiveKit clients connect via WebSocket; Caddy forwards Upgrade headers
+#     # automatically. The RTC media path uses UDP/TCP on 7882/7881 directly,
+#     # bypassing Caddy.
+#     handle /livekit/* {
+#         reverse_proxy livekit:7880 {
+#             header_up Host {host}
+#             header_up X-Real-IP {remote_host}
+#         }
+#     }
+#
+#     # ---- Socket.IO (added in Phase 2) --------------------------------------
+#     # handle /socket.io/* {
+#     #     reverse_proxy api:3001
+#     # }
+#
+#     # ---- Single-page app ---------------------------------------------------
+#     # A build step copies apps/web/dist into the /srv volume.
+#     handle {
+#         root * /srv
+#         try_files {path} /index.html
+#         file_server
+#     }
+# }
+
+# ---- Local-development form -------------------------------------------------
+# Not used. During development the Vite dev server (apps/web) handles SPA
+# routing and proxies /api to the Fastify backend on localhost:3001 directly.
