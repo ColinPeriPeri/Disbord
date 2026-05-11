@@ -1,0 +1,49 @@
+{
+  "name": "disbord",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Self-hosted Discord clone for small friend groups.",
+  "license": "MIT",
+  "packageManager": "pnpm@9.15.9",
+  "engines": {
+    "node": ">=24.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm -F @disbord/shared build && concurrently -n shared,api,web -c yellow,green,cyan \"pnpm -F @disbord/shared dev\" \"pnpm -F @disbord/api dev\" \"pnpm -F @disbord/web dev\"",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "19.5.0",
+    "@commitlint/config-conventional": "19.5.0",
+    "@eslint/js": "9.14.0",
+    "@types/node": "22.10.0",
+    "concurrently": "9.1.0",
+    "eslint": "9.14.0",
+    "eslint-plugin-react": "7.37.2",
+    "eslint-plugin-react-hooks": "5.0.0",
+    "eslint-plugin-react-refresh": "0.4.14",
+    "globals": "15.12.0",
+    "husky": "9.1.6",
+    "lint-staged": "15.2.10",
+    "prettier": "3.3.3",
+    "typescript": "5.6.3",
+    "typescript-eslint": "8.13.0"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,cjs,mjs}": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.{json,md,yml,yaml,css,html}": [
+      "prettier --write"
+    ]
+  }
+}

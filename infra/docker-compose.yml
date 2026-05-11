@@ -1,0 +1,111 @@
+# Disbord dev infrastructure stack.
+#
+# All values default to dev-friendly defaults if environment variables are
+# unset, so the stack runs out of the box for local development. Production
+# (Phase 6) overrides these via a real .env file or secret management.
+#
+# Caddy is defined but commented out — Phase 6 (Polish & deployment) will
+# enable it as the reverse proxy in front of the SPA, API, and LiveKit.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: disbord-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-disbord}
+      POSTGRES_USER: ${POSTGRES_USER:-disbord}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-disbord_dev}
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-disbord} -d ${POSTGRES_DB:-disbord}']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: disbord-redis
+    restart: unless-stopped
+    ports:
+      - '${REDIS_PORT:-6379}:6379'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: disbord-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-disbord}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-disbord_dev_minio}
+    ports:
+      - '${MINIO_PORT:-9000}:9000'
+      - '${MINIO_CONSOLE_PORT:-9001}:9001'
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: disbord-livekit
+    restart: unless-stopped
+    command: --config /etc/livekit/livekit.yaml
+    ports:
+      - '${LIVEKIT_HTTP_PORT:-7880}:7880'
+      - '${LIVEKIT_TCP_PORT:-7881}:7881'
+      - '${LIVEKIT_UDP_PORT:-7882}:7882/udp'
+    volumes:
+      - ./livekit/livekit.yaml:/etc/livekit/livekit.yaml:ro
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: disbord-mailhog
+    restart: unless-stopped
+    ports:
+      - '${MAILHOG_SMTP_PORT:-1025}:1025'
+      - '${MAILHOG_UI_PORT:-8025}:8025'
+
+  # ---------------------------------------------------------------------------
+  # Caddy reverse proxy — DISABLED in Phase 0.
+  #
+  # Phase 6 (Polish & deployment) will enable this service. The Caddyfile at
+  # infra/caddy/Caddyfile contains the intended config — heavily commented
+  # so the eventual transition is straightforward.
+  # ---------------------------------------------------------------------------
+  # caddy:
+  #   image: caddy:2-alpine
+  #   container_name: disbord-caddy
+  #   restart: unless-stopped
+  #   ports:
+  #     - '80:80'
+  #     - '443:443'
+  #     - '443:443/udp'
+  #   volumes:
+  #     - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+  #     - caddy_data:/data
+  #     - caddy_config:/config
+  #   depends_on:
+  #     - postgres
+  #     - redis
+  #     - livekit
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  # caddy_data:
+  # caddy_config:
